@@ -13,108 +13,159 @@ import java.util.Scanner;
 public class Solver {
     
     //Número máximo de tentativas que será aplicado para resovler o problema
-    static private int MAXITO_TENTATIVAS = 10000;
+    static private int MAXIMO_TENTATIVAS = 10000;
     
     //Resolve o problema usando a heuristica 1 - Distancia de Manhattan
     static private void solveHeuristicaQtdFora (int t[][]){
         
         Tabuleiro raiz;
+        Tabuleiro tabTemp;
+        
         ArrayList<Tabuleiro> open = new ArrayList();
-        ArrayList<Tabuleiro> close = new ArrayList();
+        ArrayList<Tabuleiro> closed = new ArrayList();
         
         int contador = 0;
         
         raiz = new Tabuleiro(t);
-        close.add(new Tabuleiro(t));
+        closed.add(new Tabuleiro(t));
         open.add(raiz);
         
         //Enquanto open não vazia
         while(raiz.getPecaFora() > 0 && !open.isEmpty()){
             open.remove(raiz);
 
-            if(raiz.verBaixo() != null)
-                insereNaOpen(raiz.verBaixo(),open,close,1);
+            if((tabTemp = raiz.verificaBaixo()) != null)
+                insereNaOpen(tabTemp,open,closed,2);
 
-            if(raiz.verCima() != null)
-                insereNaOpen(raiz.verCima(),open,close,1);
+            if((tabTemp = raiz.verificaCima()) != null)
+                insereNaOpen(tabTemp,open,closed,2);
 
-            if(raiz.verDir() != null)
-                insereNaOpen(raiz.verDir(),open,close,1);
+            if((tabTemp = raiz.verificaDireita()) != null)
+                insereNaOpen(tabTemp,open,closed,2);
 
-            if(raiz.verEsq() != null)
-                insereNaOpen(raiz.verEsq(),open,close,1);
+            if((tabTemp = raiz.verificaEsquerda()) != null)
+                insereNaOpen(tabTemp,open,closed,2);
+            
+            raiz.setAberto(true);
 
-           ordenaListaOpen(open, 1);
+            ordenaListaOpen(open, 1);
 
-           if(!open.isEmpty()){
-                raiz = open.get(0);
-                close.add(raiz);
-           }
+            if(!open.isEmpty()){
+                 raiz = open.get(0);
+                 closed.add(raiz);
+            }
            
-           contador++;
+            contador++;
 
-           if (contador == MAXITO_TENTATIVAS)
-                break;
+            if (contador == MAXIMO_TENTATIVAS)
+                 break;
         }
         
         result(raiz, contador, 1);
+        
+        System.out.println("Gerando arquivos para trajetorias descartadas");
+        
+        int openCont = 0;
+        int closedCont = 0;
+        
+        open.get(0).imprimeTrajetoriaOpen(0, 1);
+        open.get(0).imprimeTrajetoriaClosed(0, 1);
+        
+        for(Tabuleiro tabTemp1: open){
+            if(!tabTemp1.isAberto() && !tabTemp1.isFilhoAberto() && tabTemp1.getPecaFora() != 0){
+                tabTemp1.imprimeTrajetoriaOpen(++openCont, 1);
+            }
+        }
+        
+        for(Tabuleiro tabTemp1: closed){
+            if(tabTemp1.isAberto() && !tabTemp1.isFilhoAberto() && tabTemp1.getPecaFora() != 0){
+                tabTemp1.imprimeTrajetoriaClosed(++closedCont, 1);
+            }
+        }
+
+        System.out.println("Arquivos gerados com sucesso");
     }
     
     //Resolve o problema usando a heuristica 2 - Distancia de Manhattan
     static private void solveHeuristicaDistanciaPeca (int t[][]){
         
         Tabuleiro raiz;
+        Tabuleiro tabTemp;
+        
         ArrayList<Tabuleiro> open = new ArrayList();
-        ArrayList<Tabuleiro> close = new ArrayList();
+        ArrayList<Tabuleiro> closed = new ArrayList();
         
         int contador = 0;
         
         raiz = new Tabuleiro(t);
-        close.add(new Tabuleiro(t));
+        closed.add(new Tabuleiro(t));
         open.add(raiz);
         
         //Enquanto open não vazia
         while(raiz.getDistanciaPecas() > 0 && !open.isEmpty()){
             open.remove(raiz);
 
-            if(raiz.verBaixo() != null)
-                insereNaOpen(raiz.verBaixo(),open,close,2);
+            if((tabTemp = raiz.verificaBaixo()) != null)
+                insereNaOpen(tabTemp,open,closed,2);
 
-            if(raiz.verCima() != null)
-                insereNaOpen(raiz.verCima(),open,close,2);
+            if((tabTemp = raiz.verificaCima()) != null)
+                insereNaOpen(tabTemp,open,closed,2);
 
-            if(raiz.verDir() != null)
-                insereNaOpen(raiz.verDir(),open,close,2);
+            if((tabTemp = raiz.verificaDireita()) != null)
+                insereNaOpen(tabTemp,open,closed,2);
 
-            if(raiz.verEsq() != null)
-                insereNaOpen(raiz.verEsq(),open,close,2);
+            if((tabTemp = raiz.verificaEsquerda()) != null)
+                insereNaOpen(tabTemp,open,closed,2);
 
            ordenaListaOpen(open, 2);
 
            if(!open.isEmpty()){
                 raiz = open.get(0);
-                close.add(raiz);
+                closed.add(raiz);
            }
            
            contador++;
 
-           if (contador == MAXITO_TENTATIVAS)
+           if (contador == MAXIMO_TENTATIVAS)
                 break;
         }
         
         result(raiz, contador, 2);
+                
+        System.out.println("Gerando arquivos para trajetorias descartadas");
+        
+        int openCont = 0;
+        int closedCont = 0;
+        
+        open.get(0).imprimeTrajetoriaOpen(0, 2);
+        open.get(0).imprimeTrajetoriaClosed(0, 2);
+        for(Tabuleiro tabTemp1: open){
+            if(!tabTemp1.isAberto() && !tabTemp1.isFilhoAberto() && tabTemp1.getPecaFora() != 0){
+                tabTemp1.imprimeTrajetoriaOpen(++openCont, 2);
+            }
+        }
+        
+        for(Tabuleiro tabTemp1: closed){
+            if(tabTemp1.isAberto() && !tabTemp1.isFilhoAberto() && tabTemp1.getPecaFora() != 0){
+                tabTemp1.imprimeTrajetoriaClosed(++closedCont, 2);
+            }
+        }
+
+        System.out.println("Arquivos gerados com sucesso");
     }
     
     //Exibe o resultado da busca na tela, mostrando toda a trajetório escolhida
     static private void result(Tabuleiro raiz, int contador, int heuristica){
         if(raiz.getPecaFora() == 0){
-          System.out.println("Sucesso: Tabuleiro foi resolvido em " + contador + " tentativas");
+          System.out.println("Sucesso");
           if (heuristica == 1)
               raiz.printCaminhoPecaFora();
           else
               raiz.printCaminhoDistanciaPecas();
+          System.out.println("Tabuleiro foi resolvido em " + contador + " tentativas (eficiencia)\n"
+                  + "Eficacia: " + raiz.getNivel() + " movimentos\n");
         }else
-          System.out.println("Infelizmente não foi possivel resolver este tabuleiro.\n"
+          System.out.println("Infelizmente nso foi possivel resolver este tabuleiro.\n"
                               +"Foram realizadas " + contador+ " tentativas");
     }
     
@@ -146,82 +197,87 @@ public class Solver {
     }
     
     //Insere novo tabuleiro na open e remove da close caso necessário
-    static private void insereNaOpen(Tabuleiro p, ArrayList<Tabuleiro> open, ArrayList<Tabuleiro> close, int heuristica){
+    static private void insereNaOpen(Tabuleiro tabuleiroArg, ArrayList<Tabuleiro> open, ArrayList<Tabuleiro> close, int heuristica){
         
         if (heuristica == 1){
-            for(Tabuleiro o: open){
-                if(o.equals(p)){
-                    if(o.heuristicaQtdPecasFora() > p.heuristicaQtdPecasFora()){
-                        open.set(open.indexOf(o), p);
+            for(Tabuleiro tabTemp: open){
+                if(tabTemp.equals(tabuleiroArg)){
+                    if(tabTemp.heuristicaQtdPecasFora() > tabuleiroArg.heuristicaQtdPecasFora()){
+                        open.set(open.indexOf(tabTemp), tabuleiroArg);
                     }
                     return;
                 }
             }
 
-            for(Tabuleiro o: close){
-                if(o.equals(p)){
-                    if(o.heuristicaQtdPecasFora() > p.heuristicaQtdPecasFora()){
-                        open.add(p);
-                        close.remove(o);
+            for(Tabuleiro tabTemp: close){
+                if(tabTemp.equals(tabuleiroArg)){
+                    if(tabTemp.heuristicaQtdPecasFora() > tabuleiroArg.heuristicaQtdPecasFora()){
+                        open.add(tabuleiroArg);
+                        close.remove(tabTemp);
                     }
                     return;
                 }
             }
         } else {
-            for(Tabuleiro o: open){
-                if(o.equals(p)){
-                    if(o.heuristicaDistanciaPecas() > p.heuristicaDistanciaPecas()){
-                        open.set(open.indexOf(o), p);
+            for(Tabuleiro tabTemp: open){
+                if(tabTemp.equals(tabuleiroArg)){
+                    if(tabTemp.heuristicaDistanciaPecas() > tabuleiroArg.heuristicaDistanciaPecas()){
+                        open.set(open.indexOf(tabTemp), tabuleiroArg);
                     }
                     return;
                 }
             }
 
-            for(Tabuleiro o: close){
-                if(o.equals(p)){
-                    if(o.heuristicaDistanciaPecas() > p.heuristicaDistanciaPecas()){
-                        open.add(p);
-                        close.remove(o);
+            for(Tabuleiro tabTemp: close){
+                if(tabTemp.equals(tabuleiroArg)){
+                    if(tabTemp.heuristicaDistanciaPecas() > tabuleiroArg.heuristicaDistanciaPecas()){
+                        open.add(tabuleiroArg);
+                        close.remove(tabTemp);
                     }
                     return;
                 }
             }
         }
         
-        open.add(p);
+        open.add(tabuleiroArg);
     }
 
     //Método responsável pela execução do programa
-    public static void main(String[] args) {        
-        Scanner sc = new Scanner(System.in);
-        int tabuleiro[][] = new int[3][3];
-        
-        System.out.println("+-----------------------------------------------------------------------+\n"
-                         + "| UNIVERSIDE FEDERAL DE SAO CARLOS                                      |\n"
-                         + "| 8-Puzzle Solver                                                       |\n"
-                         + "|                                                                       |\n"
-                         + "| Rafael Wolf de Goes                                                   |\n"
-                         + "| Matheus Finatti                                                       |\n"
-                         + "+-----------------------------------------------------------------------+\n");
-        
-        
-        System.out.println("Informe o tabuleiro desejado:\n"
-                + "Exemplo: 2 1 3 <ENTER> 8 4 0 <ENTER> 7 5 6 <ENTER>");
-        for(int i = 0; i < 3; i++)
-            for(int j = 0; j < 3; j++)
-                tabuleiro[i][j] = sc.nextInt();
-        
-        System.out.println("\nHeuristica 1 - Quantidade de pecas fora do lugar");
-        long start = System.nanoTime();
-        solveHeuristicaQtdFora(tabuleiro);
-        long elapsedTime = System.nanoTime() - start;
-        System.out.println("Esta solução tomou: " + elapsedTime/(1000000000.0) + " segundos");
-        
-        System.out.println("\nHeuristica 2 - Distancia de Manhattan");
-        start = System.nanoTime();
-        solveHeuristicaDistanciaPeca(tabuleiro);
-        elapsedTime = System.nanoTime() - start;
-        System.out.println("Esta solução tomou: " + elapsedTime/(1000000000.0) + " segundos");
+    public static void main(String[] args) {     
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                Scanner sc = new Scanner(System.in);
+                int tabuleiro[][] = new int[3][3];
+
+                System.out.println("+-----------------------------------------------------------------------+\n"
+                                 + "| UNIVERSIDE FEDERAL DE SAO CARLOS                                      |\n"
+                                 + "| 8-Puzzle Solver                                                       |\n"
+                                 + "|                                                                       |\n"
+                                 + "| Rafael Wolf de Goes                                                   |\n"
+                                 + "| Matheus Finatti                                                       |\n"
+                                 + "+-----------------------------------------------------------------------+\n");
+
+
+                System.out.println("Informe o tabuleiro desejado:\n"
+                        + "Exemplo: 2 1 3 <ENTER> 8 4 0 <ENTER> 7 5 6 <ENTER>");
+                for(int i = 0; i < 3; i++)
+                    for(int j = 0; j < 3; j++)
+                        tabuleiro[i][j] = sc.nextInt();
+
+                System.out.println("\nHeuristica 1 - Quantidade de pecas fora do lugar");
+                long start = System.nanoTime();
+                solveHeuristicaQtdFora(tabuleiro);
+                long elapsedTime = System.nanoTime() - start;
+                System.out.println("Esta solução tomou: " + elapsedTime/(1000000000.0) + " segundos");
+
+                System.out.println("\nHeuristica 2 - Distancia de Manhattan");
+                start = System.nanoTime();
+                solveHeuristicaDistanciaPeca(tabuleiro);
+                elapsedTime = System.nanoTime() - start;
+                System.out.println("Esta solução tomou: " + elapsedTime/(1000000000.0) + " segundos");
+            }
+        });
     }
 
 }

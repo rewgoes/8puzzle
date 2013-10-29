@@ -8,6 +8,15 @@
 
 package eightpuzzle;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class Tabuleiro {
     //Valores de referencia de onde veio a peça do movimento
     private static final int ESQUERDA = 0;
@@ -17,6 +26,25 @@ public class Tabuleiro {
     
     private int tabuleiro[][] = new int[3][3];
     private int pecaFora, posicaoVertical, posicaoHorizontal, ladoVindo, distanciaPecas;
+    private boolean aberto;
+    private boolean filhoAberto;
+
+    public boolean isFilhoAberto() {
+        return filhoAberto;
+    }
+
+    public void setFilhoAberto(boolean filhoAberto) {
+        this.filhoAberto = filhoAberto;
+    }
+
+    public void setAberto(boolean aberto) {
+        this.aberto = aberto;
+    }
+
+
+    public boolean isAberto() {
+        return aberto;
+    }
 
     private Tabuleiro pai;
     private int nivel;
@@ -151,48 +179,68 @@ public class Tabuleiro {
     }
     
     //Verifica se é possível ir para a esquerda
-    public Tabuleiro verEsq(){
+    public Tabuleiro verificaEsquerda(){
         Tabuleiro tab = new Tabuleiro(tabuleiro);
+        tab.aberto = false;
+        tab.filhoAberto = false;
         tab.setPai(this);
         tab.setNivel(this.getNivel() + 1);
         if(tab.moveEsq() && tab.getLadoVindo() != Tabuleiro.DIREITA){
             tab.setLadoVindo(Tabuleiro.ESQUERDA);
+            this.aberto = true;
+            if (this.pai != null)
+                this.pai.filhoAberto = true;
             return tab;
         }else
             return null;
     }
     
     //Verifica se é possível ir para a direita
-    public Tabuleiro verDir(){
+    public Tabuleiro verificaDireita(){
         Tabuleiro tab = new Tabuleiro(tabuleiro);
         tab.setPai(this);
+        tab.aberto = false;
+        tab.filhoAberto = false;
         tab.setNivel(this.getNivel() + 1);
         if(tab.moveDir()&& tab.getLadoVindo() != Tabuleiro.ESQUERDA){
             tab.setLadoVindo(Tabuleiro.DIREITA);
+            this.aberto = true;
+            if (this.pai != null)
+                this.pai.filhoAberto = true;
             return tab;
         }else
             return null;
     }
     
     //Verifica se é possível ir para baixo
-    public Tabuleiro verBaixo(){
+    public Tabuleiro verificaBaixo(){
         Tabuleiro tab = new Tabuleiro(tabuleiro);
         tab.setPai(this);
+        tab.aberto = false;
+        tab.filhoAberto = false;
         tab.setNivel(this.getNivel() + 1);
         if(tab.moveBaixo() && tab.getLadoVindo() != Tabuleiro.CIMA){
             tab.setLadoVindo(Tabuleiro.BAIXO);
+            this.aberto = true;
+            if (this.pai != null)
+                this.pai.filhoAberto = true;
             return tab;
         }else
             return null;
     }
     
     //Verifica se é possível ir para cima
-    public Tabuleiro verCima(){
+    public Tabuleiro verificaCima(){
         Tabuleiro tab = new Tabuleiro(tabuleiro);
         tab.setPai(this);
+        tab.aberto = false;
+        tab.filhoAberto = false;
         tab.setNivel(this.getNivel() + 1);
         if(tab.moveCima() && tab.getLadoVindo() != Tabuleiro.BAIXO){
             tab.setLadoVindo(Tabuleiro.CIMA);
+            this.aberto = true;
+            if (this.pai != null)
+                this.pai.filhoAberto = true;
             return tab;
         }else
             return null;
@@ -313,10 +361,92 @@ public class Tabuleiro {
     public boolean equals(Tabuleiro p){
         int tab[][] = p.getTabuleiro();
         for(int i = 0; i < 3; i++)
-            for(int j = i; j < 3; j++)
+            for(int j = 0; j < 3; j++)
                 if(tabuleiro[i][j] != tab[i][j])
                     return false;
         return true;
+    }
+
+    void imprimeTrajetoriaOpen(int trajetoria, int heuristica) {
+        try {
+            File open = new File("h" + heuristica + "-trajetorias-open.txt");
+            
+            if(trajetoria == 0){
+                if (open.exists())
+                    open.delete();
+                open.createNewFile();
+                return;
+            }
+            
+            PrintWriter writer = new PrintWriter(new FileWriter(open, true));
+            writer.println("================\n"
+                    +      "Trajetoria " + trajetoria
+                    +      "\n================\n");
+            
+            imprimeCaminho(writer);
+            
+            writer.println("\n");
+            
+            writer.close();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Tabuleiro.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(Tabuleiro.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Tabuleiro.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void imprimeCaminho(PrintWriter writer) {
+        if(this.getPai() != null)
+            this.getPai().imprimeCaminho(writer);
+        imprime(writer);
+    }
+    
+    //Imprimi tabuleiro apenas
+    public void imprime(PrintWriter writer){
+        writer.println("+-----------+");
+        for(int i = 0; i < 3; i++){
+            writer.print("| ");
+            for(int j = 0; j < 3; j++){
+                if(tabuleiro[i][j] != 0)
+                    writer.print(tabuleiro[i][j] + " | ");   
+                else
+                    writer.print("  | ");
+            }
+            writer.println("\n+-----------+");
+       }
+    }
+
+    void imprimeTrajetoriaClosed(int trajetoria, int heuristica) {
+        try {
+            File close = new File("h" + heuristica + "-trajetorias-closed.txt");
+            
+            if(trajetoria == 0){
+                if (close.exists())
+                    close.delete();
+                close.createNewFile();
+                return;
+            }
+            
+             
+            PrintWriter writer = new PrintWriter(new FileWriter(close, true));
+            writer.println("================\n"
+                    +      "Trajetoria " + trajetoria
+                    +      "\n================\n");
+            
+            imprimeCaminho(writer);
+            
+            writer.println("\n");
+            
+            writer.close();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Tabuleiro.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(Tabuleiro.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Tabuleiro.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
 }
